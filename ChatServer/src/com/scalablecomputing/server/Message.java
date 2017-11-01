@@ -75,5 +75,14 @@ public class Message {
 		this.joinId = joinId;
 	}
 	
+	public String joinReplyToString(){
+	     return "JOINED_CHATROOM: "+joinedChatroom+"\n"
+	    		 +"SERVER_IP: "+serverIp+"\n"
+	    		 +"PORT: "+PORT+"\n"
+	    		 +"ROOM_REF: "+roomRef+"\n"
+	    		 +"JOIN_ID: "+joinId;
+	    		 
+	   }
+	
 	
 }

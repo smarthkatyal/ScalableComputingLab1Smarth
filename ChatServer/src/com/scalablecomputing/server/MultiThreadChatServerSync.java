@@ -26,7 +26,7 @@ public class MultiThreadChatServerSync {
 	public static void main(String args[]) {
 
 		HelperFunctions.loadProperties();
-		
+		Storage.charRoomsIndex=0;
 		// The default port number.
 		int portNumber = 2223;
 		if (args.length < 1) {
@@ -90,20 +90,21 @@ class clientThread extends Thread {
 	private Socket clientSocket = null;
 	private final clientThread[] threads;
 	private int maxClientsCount;
-	
+
 
 	public clientThread(Socket clientSocket, clientThread[] threads) {
 		this.clientSocket = clientSocket;
 		this.threads = threads;
 		maxClientsCount = threads.length;
-		
+
 	}
 
 	public void run() {
 		int maxClientsCount = this.maxClientsCount;
 		clientThread[] threads = this.threads;
 		HelperFunctions hf = new HelperFunctions();
-		Message inPacket,outPacket = new Message();
+		Message inPacket = new Message();
+		String outMessage =null;
 		try {
 			/*
 			 * Create input and output streams for this client.
@@ -111,20 +112,31 @@ class clientThread extends Thread {
 			is = new DataInputStream(clientSocket.getInputStream());
 			os = new PrintStream(clientSocket.getOutputStream());
 			//System.out.println("\nRead Line from client: "+is.readLine());
-			
+
 			String s1= is.readLine();
 			String s2= is.readLine();
 			String s3= is.readLine();
 			String s4= is.readLine();
-			inPacket = hf.processJoinMessage(s1,s2,s3,s4);
-			
-			//If porcessing is successful send reply
-			hf.makeReplyMessage(inPacket);
-			
-			System.out.println("\nAfter decoding: "+inPacket);
+			if(s1.startsWith("JOIN_CHATROOM: ")) {
+				inPacket = hf.processJoinMessage(s1,s2,s3,s4,os);
+				//If pre-processing is successful send reply
+				outMessage = hf.makeReplyMessage(inPacket);
+				os.print(outMessage);
+				System.out.println("\nAfter decoding: "+outMessage);
+			}else if(s1.startsWith("LEFT_CHATROOM: ")) {
 
-			
-			
+			}else if(s1.startsWith("CHAT: ")) {
+				//Pre-Processing
+				inPacket = hf.processChatMessage(s1,s2,s3,s4,os);
+				//If pre-processing is successful send reply
+				//outMessage = hf.makeChatReplyMessage(inPacket);
+				os.print(outMessage);
+				System.out.println("\nAfter decoding: "+outMessage);
+			}
+
+
+
+
 			/*
 			 * Clean up. Set the current thread variable to null so that a new client
 			 * could be accepted by the server.
@@ -146,5 +158,5 @@ class clientThread extends Thread {
 		}
 	}
 
-	
+
 }

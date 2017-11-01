@@ -51,7 +51,7 @@ public class MultiThreadChatClient {
      */
     try {
       clientSocket = new Socket(host, portNumber);
-      msg = join("Whatsapp","firstclient");
+      msg = join("Whatsapp22","firstclient22");
       //inputLine = new BufferedReader(new InputStreamReader(System.in));
       os = new PrintStream(clientSocket.getOutputStream());
       is = new DataInputStream(clientSocket.getInputStream());
@@ -72,7 +72,15 @@ public class MultiThreadChatClient {
         /* Create a thread to read from the server. */
         //new Thread(new MultiThreadChatClient()).start();
           os.println(msg);
-          
+          while(true) {
+        	  String line = is.readLine();
+        	  if(line.length()!=0) {
+        		  System.out.println(line);
+        		  if (line.contains("JOIN_ID"))
+        			  break;
+        	  }
+          }
+
         /*
          * Close the output stream, close the input stream, close the socket.
          */

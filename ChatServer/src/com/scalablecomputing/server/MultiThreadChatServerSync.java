@@ -7,6 +7,7 @@ import java.io.PrintStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Properties;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 
 /*
@@ -27,21 +28,25 @@ public class MultiThreadChatServerSync {
 
 		HelperFunctions.loadProperties();
 		Storage.charRoomsIndex=0;
+		String ip = "10.32.102.110";
 		// The default port number.
 		int portNumber = 2223;
 		if (args.length < 1) {
 			System.out.println("Usage: java MultiThreadChatServerSync <portNumber>\n"
-					+ "Now using port number=" + portNumber);
+					+ "Now using port number=" + portNumber +"\nAnd IP= "+ ip);
 		} else {
 			portNumber = Integer.valueOf(args[0]).intValue();
 		}
 
+		
 		/*
 		 * Open a server socket on the portNumber (default 2222). Note that we can
 		 * not choose a port less than 1023 if we are not privileged users (root).
 		 */
 		try {
-			serverSocket = new ServerSocket(portNumber);
+			InetAddress addr = InetAddress.getByName(ip);
+			serverSocket = new ServerSocket(portNumber,50,addr);
+			
 		} catch (IOException e) {
 			System.out.println(e);
 		}

@@ -32,9 +32,9 @@ public class MultiThreadChatClient {
   public static void main(String[] args) {
 
     // The default port.
-    int portNumber = 2223;
+    int portNumber = 22;
     // The default host.
-    String host = "localhost";
+    String host = "10.32.102.110";
     String msg = "";
 
     if (args.length < 2) {

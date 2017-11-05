@@ -1,15 +1,7 @@
 package com.scalablecomputing.server;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
-
 import com.scalablecomputing.server.Message;
 
 public class HelperFunctions {
@@ -20,7 +12,10 @@ public class HelperFunctions {
 	}
 	public Message processJoinMessage(String s1,String s2,String s3,String s4, PrintStream os) {
 		Message msg = new Message();
-		if(s1.startsWith("JOIN_CHATROOM") && s2.startsWith("CLIENT_IP") && s3.startsWith("PORT") && s4.startsWith("CLIENT_NAME")) {
+		if(s1.startsWith("JOIN_CHATROOM") &&
+				s2.startsWith("CLIENT_IP") &&
+				s3.startsWith("PORT") &&
+				s4.startsWith("CLIENT_NAME")) {
 
 			String[] parts = s1.split(": ");
 			String s1Val = parts[1];
@@ -46,6 +41,24 @@ public class HelperFunctions {
 			//No Error, Add the client and outputstream to storage
 			Storage.writers.put(Integer.parseInt(String.valueOf(Thread.currentThread().getId())),os);
 			Storage.clients.put(Integer.parseInt(String.valueOf(Thread.currentThread().getId())), Storage.chatRooms.get(s1Val));
+			
+			
+			String outMessage = makeReplyMessage(msg);
+			os.print(outMessage);
+			System.out.println("\nAfter decoding: "+outMessage);
+			//Send the client name to all members of this chat room
+			PrintStream os2;
+			String strmsg = "CHAT: "+ Storage.chatRooms.get(s1Val) +
+							"\nCLIENT_NAME: "+s4Val+
+							"\nMESSAGE: "+ s4Val;
+			os.println(strmsg);
+			for (Entry<Integer, PrintStream> entry : Storage.writers.entrySet()) {
+				System.out.println(entry.getKey().toString());
+				if(String.valueOf(Storage.clients.get(entry.getKey()))==s1Val) {
+					os2 = entry.getValue();
+		        	os2.println(strmsg);
+				}
+			}
 
 			return msg;
 		}
@@ -71,23 +84,23 @@ public class HelperFunctions {
 
 	}
 	public static void loadProperties() {
-		Properties prop = new Properties();
-
-		try {
-			prop.load(new FileInputStream("conf/keywords.properties"));
+		/*	try {
+			prop.load(new FileInputStream("keywords.properties"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		keywords.serverIp = prop.getProperty("serverIp");
-		keywords.serverPort = prop.getProperty("serverPort");
+		keywords.serverPort = prop.getProperty("serverPort");*/
+		keywords.serverIp = "10.32.102.110";
+		keywords.serverPort = "2223";
 	}
-	public Message processChatMessage(String s1, String s2, String s3, String s4, PrintStream os) {
+
+	public boolean processChatMessage(String s1, String s2, String s3, String s4, PrintStream os) {
 		Message msg = new Message();
 		if(s1.startsWith("CHAT") && s2.startsWith("JOIN_ID") && s3.startsWith("CLIENT_NAME") && s4.startsWith("MESSAGE")) {
 			String[] parts = s1.split(": ");
 			String s1Val = parts[1];
 			parts = s2.split(": ");
-			String s2Val = parts[1];
 			parts = s3.split(": ");
 			String s3Val = parts[1];
 			parts = s4.split(": ");
@@ -97,7 +110,7 @@ public class HelperFunctions {
 			if(!Storage.chatRooms.containsValue(s1Val)) { //Create new chatroom
 				msg.setErrorCode("1");
 				msg.setErrorDescription("Input Message not valid");
-				return msg;
+				return false;
 			}
 			PrintStream os2;
 			String strmsg=null;
@@ -114,12 +127,21 @@ public class HelperFunctions {
 		        }
 		    }
 
-			return msg;
+			return true;
 		}
 		else {
 			msg.setErrorCode("1");
 			msg.setErrorDescription("Input Message not valid");
-			return msg;
+			return false;
 		}
 	}
+	public void processHeloMessage(String helo, PrintStream os) {
+		String strmsg=null;
+		//TODO: Change IP and port
+		strmsg = helo + "\nIP: 10.62.0.59\nPort: 8089\nStudentID: 17306092\n";
+		System.out.println("Processing Helo msg");
+		os.print(strmsg);
+		System.out.println("Wrote to OS");
+	}
+	
 }

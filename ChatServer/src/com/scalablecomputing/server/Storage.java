@@ -2,7 +2,6 @@ package com.scalablecomputing.server;
 
 import java.io.PrintStream;
 import java.util.HashMap;
-import java.util.Vector;
 
 public class Storage {
 

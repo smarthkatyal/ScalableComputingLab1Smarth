@@ -1,8 +1,6 @@
 package com.scalablecomputing.server;
 import java.io.DataInputStream;
 import java.io.PrintStream;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -16,9 +14,6 @@ public class MultiThreadChatClient {
   // The input stream
   private static DataInputStream is = null;
 
-  private static BufferedReader inputLine = null;
-  private static boolean closed = false;
-  
   /*
    * JOIN_CHATROOM: [chatroom name]
 		  CLIENT_IP: [IP Address of client if UDP | 0 if TCP]
@@ -29,12 +24,17 @@ public class MultiThreadChatClient {
 	  String msg = "JOIN_CHATROOM: " + chatroomName + "\nCLIENT_IP: 0\nPORT: 0\nCLIENT_NAME: " + clientName;
 	  return msg;
   }
+  public static String helo() {
+	 String msg = "HELO BASE_TEST";
+	  //String msg = "";
+	  return msg;
+  }
   public static void main(String[] args) {
 
     // The default port.
-    int portNumber = 22;
+    int portNumber = 8089;
     // The default host.
-    String host = "10.32.102.110";
+    String host = "127.0.0.1";
     String msg = "";
 
     if (args.length < 2) {
@@ -52,9 +52,11 @@ public class MultiThreadChatClient {
     try {
       clientSocket = new Socket(host, portNumber);
       msg = join("Whatsapp22","firstclient22");
+      //msg = helo();
       //inputLine = new BufferedReader(new InputStreamReader(System.in));
       os = new PrintStream(clientSocket.getOutputStream());
       is = new DataInputStream(clientSocket.getInputStream());
+     
     } catch (UnknownHostException e) {
       System.err.println("Don't know about host " + host);
     } catch (IOException e) {
@@ -71,12 +73,28 @@ public class MultiThreadChatClient {
 
         /* Create a thread to read from the server. */
         //new Thread(new MultiThreadChatClient()).start();
+    	  System.out.println("Sending msg:: "+msg);
           os.println(msg);
+          System.out.println("Sent");
           while(true) {
-        	  String line = is.readLine();
-        	  if(line.length()!=0) {
-        		  System.out.println(line);
-        		  if (line.contains("JOIN_ID"))
+			//String line = is.readLine();
+        	  int lines=0;
+              String line = null;
+              String[] s = new String[10];
+  			while(true) {
+				line = is.readLine();
+				s[lines]=line;
+				lines++;
+				System.out.println(line);
+				if(line==null||line.isEmpty())
+					break;
+			}
+              System.out.println(s.toString());
+        	  if(s[0].length()!=0) {
+        		  System.out.println(s.toString());
+        		  if (s[0].contains("JOIN_ID"))
+        			  break;
+        		  else if(s[0].contains("HELO"))
         			  break;
         	  }
           }

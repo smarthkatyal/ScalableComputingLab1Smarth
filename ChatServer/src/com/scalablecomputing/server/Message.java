@@ -80,7 +80,7 @@ public class Message {
 	    		 +"SERVER_IP: "+serverIp+"\n"
 	    		 +"PORT: "+PORT+"\n"
 	    		 +"ROOM_REF: "+roomRef+"\n"
-	    		 +"JOIN_ID: "+joinId;
+	    		 +"JOIN_ID: "+joinId+"\n";
 	    		 
 	   }
 	

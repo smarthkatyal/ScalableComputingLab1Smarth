@@ -1,13 +1,11 @@
 package com.scalablecomputing.server;
 import java.io.DataInputStream;
-import java.io.FileInputStream;
 
 import com.scalablecomputing.server.Message;
 import java.io.PrintStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Properties;
-import java.net.InetAddress;
+import java.util.Arrays;
 import java.net.ServerSocket;
 
 /*
@@ -28,9 +26,9 @@ public class MultiThreadChatServerSync {
 
 		HelperFunctions.loadProperties();
 		Storage.charRoomsIndex=0;
-		String ip = "10.32.102.110";
+		String ip = "127.0.0.1";
 		// The default port number.
-		int portNumber = 2223;
+		int portNumber = 8089;
 		if (args.length < 1) {
 			System.out.println("Usage: java MultiThreadChatServerSync <portNumber>\n"
 					+ "Now using port number=" + portNumber +"\nAnd IP= "+ ip);
@@ -38,15 +36,15 @@ public class MultiThreadChatServerSync {
 			portNumber = Integer.valueOf(args[0]).intValue();
 		}
 
-		
+
 		/*
 		 * Open a server socket on the portNumber (default 2222). Note that we can
 		 * not choose a port less than 1023 if we are not privileged users (root).
 		 */
 		try {
-			InetAddress addr = InetAddress.getByName(ip);
-			serverSocket = new ServerSocket(portNumber,50,addr);
-			
+			serverSocket = new ServerSocket(portNumber);
+			System.out.println("Server Started");
+
 		} catch (IOException e) {
 			System.out.println(e);
 		}
@@ -57,7 +55,9 @@ public class MultiThreadChatServerSync {
 		 */
 		while (true) {
 			try {
+				System.out.println("Waiting for connection");
 				clientSocket = serverSocket.accept();
+				System.out.println("Got a connetion creating thread");
 				int i = 0;
 				for (i = 0; i < maxClientsCount; i++) {
 					if (threads[i] == null) {
@@ -89,7 +89,6 @@ public class MultiThreadChatServerSync {
  */
 class clientThread extends Thread {
 
-	private String clientName = null;
 	private DataInputStream is = null;
 	private PrintStream os = null;
 	private Socket clientSocket = null;
@@ -105,11 +104,13 @@ class clientThread extends Thread {
 	}
 
 	public void run() {
+		System.out.println("Created a thread");
 		int maxClientsCount = this.maxClientsCount;
 		clientThread[] threads = this.threads;
 		HelperFunctions hf = new HelperFunctions();
 		Message inPacket = new Message();
 		String outMessage =null;
+		String[] s = new String[4];
 		try {
 			/*
 			 * Create input and output streams for this client.
@@ -117,26 +118,79 @@ class clientThread extends Thread {
 			is = new DataInputStream(clientSocket.getInputStream());
 			os = new PrintStream(clientSocket.getOutputStream());
 			//System.out.println("\nRead Line from client: "+is.readLine());
+			String line = null;
+			int lines=0;
+			//==line = is.readLine();
+			//line = is.readLine();
 
+			//is.readFully(buffer)
+
+			s[0]=is.readLine();
+			lines++;
+			System.out.println("FirstLine: "+line);
+
+			/*
+			@SuppressWarnings("deprecation")
 			String s1= is.readLine();
+			@SuppressWarnings("deprecation")
 			String s2= is.readLine();
+			@SuppressWarnings("deprecation")
 			String s3= is.readLine();
+			@SuppressWarnings("deprecation")
 			String s4= is.readLine();
-			if(s1.startsWith("JOIN_CHATROOM: ")) {
-				inPacket = hf.processJoinMessage(s1,s2,s3,s4,os);
+						while(true) {
+				line = is.readLine();
+				s[lines]=line;
+				lines++;
+				System.out.println(line);
+				if(line==null||line.isEmpty()||(!line.contains("\n")))
+					break;
+			}*/
+			if(s[0].startsWith("JOIN_CHATROOM: ")) {
+				System.out.println("In join chatroom");
+				s[1] = is.readLine();
+				s[2] = is.readLine();
+				s[3] = is.readLine();
+				inPacket = hf.processJoinMessage(s[0],s[1],s[2],s[3],os);
 				//If pre-processing is successful send reply
-				outMessage = hf.makeReplyMessage(inPacket);
-				os.print(outMessage);
-				System.out.println("\nAfter decoding: "+outMessage);
-			}else if(s1.startsWith("LEFT_CHATROOM: ")) {
-
-			}else if(s1.startsWith("CHAT: ")) {
+				//outMessage = hf.makeReplyMessage(inPacket);
+				//os.print(outMessage);
+				//System.out.println("\nAfter decoding: "+outMessage);
+			}else if(s[0].startsWith("LEFT_CHATROOM: ")) {
+				System.out.println("in leave block");
+			}else if(s[0].startsWith("CHAT: ")) {
+				System.out.println("In Chat Block");
 				//Pre-Processing
-				inPacket = hf.processChatMessage(s1,s2,s3,s4,os);
+				s[1] = is.readLine();
+				s[2] = is.readLine();
+				s[3] = is.readLine();
+				hf.processChatMessage(s[0],s[1],s[2],s[3],os);
 				//If pre-processing is successful send reply
 				//outMessage = hf.makeChatReplyMessage(inPacket);
-				os.print(outMessage);
-				System.out.println("\nAfter decoding: "+outMessage);
+				//os.print(outMessage);
+				//System.out.println("\nAfter decoding: "+outMessage);
+			}else if(s[0].startsWith("HELO ")) {
+				System.out.println("In hello block");
+				hf.processHeloMessage(s[0],os);
+			}
+			else if(s[0].contains("KILL_SERVICE")) {
+				System.out.println("In Kill Service");
+				synchronized (this) {
+					for (int i = 0; i < maxClientsCount; i++) {
+						if (threads[i] == this) {
+							threads[i] = null;
+						}
+					}
+				}
+				/*
+				 * Close the output stream, close the input stream, close the socket.
+				 */
+				is.close();
+				os.close();
+				clientSocket.close();
+				System.exit(0);
+			}else {
+				System.out.println("Error");
 			}
 
 
@@ -160,6 +214,8 @@ class clientThread extends Thread {
 			os.close();
 			clientSocket.close();
 		} catch (IOException e) {
+			System.out.println("IO Exception::"+e +"::");
+			e.printStackTrace();
 		}
 	}
 

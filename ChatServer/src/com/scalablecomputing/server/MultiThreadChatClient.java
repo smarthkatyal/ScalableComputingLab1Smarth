@@ -29,13 +29,18 @@ public class MultiThreadChatClient {
 	  //String msg = "";
 	  return msg;
   }
+  
+  public static String leave(String chatroomName, String clientName ) {
+	  String msg = "LEAVE_CHATROOM: " + chatroomName + "\nJOIN_ID: 0\nCLIENT_NAME: " + clientName;
+	  return msg;
+  }
   public static void main(String[] args) {
 
     // The default port.
     int portNumber = 8089;
     // The default host.
     String host = "127.0.0.1";
-    String msg = "";
+    String msg1 = "",msg2 = "";
 
     if (args.length < 2) {
       System.out
@@ -51,7 +56,8 @@ public class MultiThreadChatClient {
      */
     try {
       clientSocket = new Socket(host, portNumber);
-      msg = join("Whatsapp22","firstclient22");
+       msg1 = join("Whatsapp22","firstclient22");
+       msg2 = leave("Whatsapp22","firstclient22");
       //msg = helo();
       //inputLine = new BufferedReader(new InputStreamReader(System.in));
       os = new PrintStream(clientSocket.getOutputStream());
@@ -73,8 +79,10 @@ public class MultiThreadChatClient {
 
         /* Create a thread to read from the server. */
         //new Thread(new MultiThreadChatClient()).start();
-    	  System.out.println("Sending msg:: "+msg);
-          os.println(msg);
+    	  System.out.println("Sending msg1:: "+msg1);
+          os.println(msg1);
+          System.out.println("Sending msg2:: "+msg2);
+          os.println(msg2);
           System.out.println("Sent");
           while(true) {
 			//String line = is.readLine();

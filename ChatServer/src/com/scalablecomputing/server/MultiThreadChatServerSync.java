@@ -1,10 +1,13 @@
 package com.scalablecomputing.server;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 
 import com.scalablecomputing.server.Message;
 import java.io.PrintStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
+import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.net.ServerSocket;
 
@@ -19,7 +22,7 @@ public class MultiThreadChatServerSync {
 	private static Socket clientSocket = null;
 
 	// This chat server can accept up to maxClientsCount clients' connections.
-	private static final int maxClientsCount = 10;
+	private static final int maxClientsCount = 100;
 	private static final clientThread[] threads = new clientThread[maxClientsCount];
 
 	public static void main(String args[]) {
@@ -89,135 +92,121 @@ public class MultiThreadChatServerSync {
  */
 class clientThread extends Thread {
 
-	private DataInputStream is = null;
-	private PrintStream os = null;
 	private Socket clientSocket = null;
-	private final clientThread[] threads;
-	private int maxClientsCount;
-
-
 	public clientThread(Socket clientSocket, clientThread[] threads) {
 		this.clientSocket = clientSocket;
-		this.threads = threads;
-		maxClientsCount = threads.length;
 
 	}
 
 	public void run() {
-		System.out.println("Created a thread");
-		int maxClientsCount = this.maxClientsCount;
-		clientThread[] threads = this.threads;
-		HelperFunctions hf = new HelperFunctions();
-		Message inPacket = new Message();
-		String outMessage =null;
-		String[] s = new String[4];
+		System.out.println("Main Thread "+Thread.currentThread().getId()+" : Created a thread");
+		String[] s = new String[5] ;
 		try {
-			/*
-			 * Create input and output streams for this client.
-			 */
-			is = new DataInputStream(clientSocket.getInputStream());
-			os = new PrintStream(clientSocket.getOutputStream());
-			//System.out.println("\nRead Line from client: "+is.readLine());
-			String line = null;
-			int lines=0;
-			//==line = is.readLine();
-			//line = is.readLine();
+			
+			while(true) {
+				BufferedReader is = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+				PrintStream os = new PrintStream(clientSocket.getOutputStream());
+				//Storage.count++;
+				//System.out.println("******Start  "+Thread.currentThread().getId()+"  MainThread: Looped for count: "+ Storage.count+ "********");
+				//System.out.println("******  "+Thread.currentThread().getId()+"  MainThread: ReadyState: "+ is.ready()+ "********");
+				System.out.println("Waiting for input");
+				s[0]=is.readLine();
+				System.out.println("FirstLine: "+s[0]+"\n");
+				if(s[0].startsWith("JOIN_CHATROOM: ")) {
+					s[1] = is.readLine();
+					s[2] = is.readLine();
+					s[3] = is.readLine();
+				}else if(s[0].startsWith("LEAVE_CHATROOM: ")) {
+					s[1] = is.readLine();
+					s[2] = is.readLine();
+				}else if(s[0].startsWith("CHAT: ")) {
+					s[1] = is.readLine();
+					s[2] = is.readLine();
+					s[3] = is.readLine();
+				}else if(s[0].startsWith("KILL_SERVICE")) {
+					System.out.println("****End MainThread: In kill if block****");
+					System.exit(0);
+				}else if(s[0].startsWith("HELO ")) {
+				
+				}else {
+					System.out.println("****ERROR :: GOT "+s[0]+"****");
+					//PrintStream os = new PrintStream(clientSocket.getOutputStream());
+					HelperFunctions hf = new HelperFunctions();
+					hf .processErrorMessage(s[0],os);
 
-			//is.readFully(buffer)
-
-			s[0]=is.readLine();
-			lines++;
-			System.out.println("FirstLine: "+line);
-
-			/*
-			@SuppressWarnings("deprecation")
-			String s1= is.readLine();
-			@SuppressWarnings("deprecation")
-			String s2= is.readLine();
-			@SuppressWarnings("deprecation")
-			String s3= is.readLine();
-			@SuppressWarnings("deprecation")
-			String s4= is.readLine();
-						while(true) {
-				line = is.readLine();
-				s[lines]=line;
-				lines++;
-				System.out.println(line);
-				if(line==null||line.isEmpty()||(!line.contains("\n")))
-					break;
-			}*/
-			if(s[0].startsWith("JOIN_CHATROOM: ")) {
-				System.out.println("In join chatroom");
-				s[1] = is.readLine();
-				s[2] = is.readLine();
-				s[3] = is.readLine();
-				inPacket = hf.processJoinMessage(s[0],s[1],s[2],s[3],os);
-				//If pre-processing is successful send reply
-				//outMessage = hf.makeReplyMessage(inPacket);
-				//os.print(outMessage);
-				//System.out.println("\nAfter decoding: "+outMessage);
-			}else if(s[0].startsWith("LEFT_CHATROOM: ")) {
-				System.out.println("in leave block");
-			}else if(s[0].startsWith("CHAT: ")) {
-				System.out.println("In Chat Block");
-				//Pre-Processing
-				s[1] = is.readLine();
-				s[2] = is.readLine();
-				s[3] = is.readLine();
-				hf.processChatMessage(s[0],s[1],s[2],s[3],os);
-				//If pre-processing is successful send reply
-				//outMessage = hf.makeChatReplyMessage(inPacket);
-				//os.print(outMessage);
-				//System.out.println("\nAfter decoding: "+outMessage);
-			}else if(s[0].startsWith("HELO ")) {
-				System.out.println("In hello block");
-				hf.processHeloMessage(s[0],os);
-			}
-			else if(s[0].contains("KILL_SERVICE")) {
-				System.out.println("In Kill Service");
-				synchronized (this) {
-					for (int i = 0; i < maxClientsCount; i++) {
-						if (threads[i] == this) {
-							threads[i] = null;
-						}
-					}
 				}
-				/*
-				 * Close the output stream, close the input stream, close the socket.
-				 */
-				is.close();
-				os.close();
-				clientSocket.close();
-				System.exit(0);
-			}else {
-				System.out.println("Error");
+				new ClientWriterThread(os,s).start();
 			}
 
-
-
-
-			/*
-			 * Clean up. Set the current thread variable to null so that a new client
-			 * could be accepted by the server.
-			 */
-			synchronized (this) {
-				for (int i = 0; i < maxClientsCount; i++) {
-					if (threads[i] == this) {
-						threads[i] = null;
-					}
-				}
-			}
-			/*
-			 * Close the output stream, close the input stream, close the socket.
-			 */
-			is.close();
-			os.close();
-			clientSocket.close();
 		} catch (IOException e) {
-			System.out.println("IO Exception::"+e +"::");
+			System.out.println("IO Exception in main Thread::"+e +"::");
 			e.printStackTrace();
 		}
 	}
 
 
-}
+}				
+//s[0]=is.readLine();
+
+/*				for(int i=0;s[i]!=null;i++) {
+					if(s[0].startsWith("JOIN_CHATROOM: ")) {
+
+					}else if(s[0].startsWith("LEAVE_CHATROOM: ")) {
+
+					}else if(s[0].startsWith("CHAT: ")) {
+
+					}else if(s[0].startsWith("HELO ")) {
+
+					}else if(s[0].contains("KILL_SERVICE")) {
+
+					}
+				}*/
+
+
+/*if(s[0].startsWith("JOIN_CHATROOM: ")) {
+					System.out.println("****Start "+Thread.currentThread().getId()+" MainThread: In join chatroom if block****");
+					s[1] = is.readLine();
+					s[2] = is.readLine();
+					s[3] = is.readLine();
+					new ClientWriterThread(clientSocket,s).start();
+					System.out.println("****End "+Thread.currentThread().getId()+" MainThread: In join chatroom if block****");
+				}else if(s[0].startsWith("LEAVE_CHATROOM: ")) {
+					System.out.println("****Start "+Thread.currentThread().getId()+" MainThread: In leave chatroom if block****");
+					s[1] = is.readLine();
+					s[2] = is.readLine();
+					synchronized (this) {
+						for (int i = 0; i < maxClientsCount; i++) {
+							if (threads[i] == this) {
+								threads[i] = null;
+							}
+						}
+					}
+					//Close the output stream, close the input stream, close the socket
+					new ClientWriterThread(clientSocket,s).start();
+					System.out.println("****End MainThread: In leave chatroom if block****");
+					return;
+				}else if(s[0].startsWith("CHAT: ")) {
+					System.out.println("****Start MainThread: In chat if block****");
+					s[1] = is.readLine();
+					s[2] = is.readLine();
+					s[3] = is.readLine();
+					new ClientWriterThread(clientSocket,s).start();
+					System.out.println("****End MainThread: In chat if block****");
+				}else if(s[0].startsWith("HELO ")) {
+					System.out.println("****Start MainThread: In hello if block****");
+					new ClientWriterThread(clientSocket,s).start();
+					System.out.println("****End MainThread: In hello chatroom if block****");
+					return;
+				}else if(s[0].contains("KILL_SERVICE")) {
+					System.out.println("****Start MainThread: In kill if block****");
+					 Close the output stream, close the input stream, close the socket.
+					is.close();
+					os.close();
+					clientSocket.close();
+					System.out.println("****End MainThread: In kill if block****");
+					System.exit(0);
+				}else {
+					System.out.println("****ERROR****");
+
+				}*/
+

@@ -29,7 +29,7 @@ public class MultiThreadChatServerSync {
 
 		HelperFunctions.loadProperties();
 		Storage.charRoomsIndex=0;
-		String ip = "127.0.0.1";
+		String ip = "134.226.50.92";
 		// The default port number.
 		int portNumber = 8089;
 		if (args.length < 1) {
@@ -93,6 +93,8 @@ public class MultiThreadChatServerSync {
 class clientThread extends Thread {
 
 	private Socket clientSocket = null;
+	BufferedReader is;
+	PrintStream os;
 	public clientThread(Socket clientSocket, clientThread[] threads) {
 		this.clientSocket = clientSocket;
 
@@ -102,10 +104,10 @@ class clientThread extends Thread {
 		System.out.println("Main Thread "+Thread.currentThread().getId()+" : Created a thread");
 		String[] s = new String[5] ;
 		try {
-			
+			is = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+			os = new PrintStream(clientSocket.getOutputStream());
 			while(true) {
-				BufferedReader is = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-				PrintStream os = new PrintStream(clientSocket.getOutputStream());
+				
 				//Storage.count++;
 				//System.out.println("******Start  "+Thread.currentThread().getId()+"  MainThread: Looped for count: "+ Storage.count+ "********");
 				//System.out.println("******  "+Thread.currentThread().getId()+"  MainThread: ReadyState: "+ is.ready()+ "********");
@@ -116,20 +118,26 @@ class clientThread extends Thread {
 					s[1] = is.readLine();
 					s[2] = is.readLine();
 					s[3] = is.readLine();
+					System.out.println("Input JOIN_CHATROOM Message:\n"+s[0]+s[1]+s[2]+s[3]);
 				}else if(s[0].startsWith("LEAVE_CHATROOM: ")) {
 					s[1] = is.readLine();
 					s[2] = is.readLine();
+					System.out.println("Input LEAVE_CHATROOM Message:\n"+s[0]+s[1]+s[2]);
 				}else if(s[0].startsWith("CHAT: ")) {
 					s[1] = is.readLine();
 					s[2] = is.readLine();
 					s[3] = is.readLine();
+					System.out.println("Input CHAT Message:\n"+s[0]+s[1]+s[2]+s[3]);
 				}else if(s[0].startsWith("KILL_SERVICE")) {
-					System.out.println("****End MainThread: In kill if block****");
+					System.out.println("Input KILL_SERVICE Message:\n"+s[0]);
+					is.close();
+					os.close();
+					clientSocket.close();
 					System.exit(0);
 				}else if(s[0].startsWith("HELO ")) {
-				
+					System.out.println("Input HELO Message:\n"+s[0]);
 				}else {
-					System.out.println("****ERROR :: GOT "+s[0]+"****");
+					System.out.println("Input ERROR Message:\n"+s[0]);
 					//PrintStream os = new PrintStream(clientSocket.getOutputStream());
 					HelperFunctions hf = new HelperFunctions();
 					hf .processErrorMessage(s[0],os);
@@ -141,6 +149,17 @@ class clientThread extends Thread {
 		} catch (IOException e) {
 			System.out.println("IO Exception in main Thread::"+e +"::");
 			e.printStackTrace();
+		}finally{
+			try {
+				System.out.println("In finally");
+				is.close();
+				os.close();
+				clientSocket.close();
+			} catch (IOException e) {
+				System.out.println("IO Exception in main Thread Finally block::"+e +"::");
+				e.printStackTrace();
+			}
+			
 		}
 	}
 

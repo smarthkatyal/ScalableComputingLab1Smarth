@@ -1,6 +1,7 @@
 package com.scalablecomputing.server;
 
 import java.io.PrintStream;
+import java.net.SocketException;
 import java.util.Map.Entry;
 import com.scalablecomputing.server.Message;
 
@@ -45,9 +46,11 @@ public class HelperFunctions {
 			Storage.clients.put(Integer.parseInt(String.valueOf(Thread.currentThread().getId())), Storage.chatRooms.get(s1Val));
 
 
+			
 			String outMessage = makeReplyMessage(msg);
 			os.print(outMessage);
-			System.out.println("\n  "+Thread.currentThread().getId()+" Send Reply for join Message to original client:\n"+outMessage);
+			System.out.println("Output  "+os+" JOIN_CHATROOM\n" +  outMessage);
+			//System.out.println("\n  "+Thread.currentThread().getId()+" Send Reply for join Message to original client:\n"+outMessage);
 			//Send the client name to all members of this chat room
 			PrintStream os2;
 			String strmsg = "CHAT: "+ Storage.chatRooms.get(s1Val) +
@@ -58,13 +61,19 @@ public class HelperFunctions {
 				System.out.println(entry.getKey().toString());
 				if(String.valueOf(Storage.clients.get(entry.getKey())).equalsIgnoreCase((String.valueOf(Storage.chatRooms.get(s1Val))))) {
 					os2 = entry.getValue();
-					System.out.println("******Start "+Thread.currentThread().getId()+" : Sending join message to other clients******");
-					os2.println(strmsg);
-					System.out.println(Thread.currentThread().getId()+" Send join Message to other clients of the chatroom:\n"+strmsg);
-					System.out.println("******End  "+Thread.currentThread().getId()+" : Sending join message to other clients******");
+					if(os!=os2){
+						os2.println(strmsg);
+						System.out.println("Output  "+os2+"  JOIN_CHATROOM\n" +  strmsg);
+					}
+					//System.out.println("******Start "+Thread.currentThread().getId()+" : Sending join message to other clients******");
+					//os2.print(strmsg);
+					//System.out.println(Thread.currentThread().getId()+" Send join Message to other clients of the chatroom:\n"+strmsg);
+					//System.out.println("******End  "+Thread.currentThread().getId()+" : Sending join message to other clients******");
 
 				}
 			}
+			os.println(strmsg);
+			System.out.println("Output  "+os+"  JOIN_CHATROOM\n" +  strmsg);
 			System.out.println("******End  "+Thread.currentThread().getId()+" : Processing Join Message******");
 			return true;
 		}
@@ -99,8 +108,8 @@ public class HelperFunctions {
 		}
 		keywords.serverIp = prop.getProperty("serverIp");
 		keywords.serverPort = prop.getProperty("serverPort");*/
-		keywords.serverIp = "10.32.102.110";
-		keywords.serverPort = "2223";
+		keywords.serverIp = "134.226.50.92";
+		keywords.serverPort = "8089";
 	}
 
 	public boolean processChatMessage(String s1, String s2, String s3, String s4, PrintStream os) {
@@ -135,6 +144,7 @@ public class HelperFunctions {
 					os2 = entry.getValue();
 					if(os2!=os)	//Dont send message to same client who sent it
 						os2.println(strmsg);
+					System.out.println("Output CHAT: \n" +  strmsg);
 				}
 			}
 			System.out.println("******End: In processChatMessage******");
@@ -152,8 +162,9 @@ public class HelperFunctions {
 		System.out.println("******Start "+Thread.currentThread().getId()+" : In processHeloMessage******");
 		String strmsg=null;
 		//TODO: Change IP and port
-		strmsg = helo + "\nIP: 10.62.0.59\nPort: 8089\nStudentID: 17306092\n";
+		strmsg = helo + "\nIP: 134.226.50.92\nPort: 8089\nStudentID: 17306092";
 		os.print(strmsg);
+		System.out.println("Output "+os+" HELO: \n" +  strmsg);
 		System.out.println("******End  "+Thread.currentThread().getId()+" : In processHeloMessage******");
 	}
 
@@ -171,7 +182,7 @@ public class HelperFunctions {
 
 
 			//check if chatroom exists
-			if(!Storage.chatRooms.containsValue(s1Val)) { //Create new chatroom
+			if(!Storage.chatRoomsInverse.containsKey(Integer.parseInt(s1Val))) { //Create new chatroom
 				/*msg.setErrorCode("1");
 				msg.setErrorDescription("Input Message not valid");*/
 				System.out.println("****ERROR 1:  Processing Leave  Message*****");
@@ -180,21 +191,46 @@ public class HelperFunctions {
 			PrintStream os2;
 			String strmsg=null;
 			strmsg = "LEFT_CHATROOM: "+s1Val +"\n"
-					+"JOIN_ID: "+s2Val +"\n"
-					+"MESSAGE: "+ s3Val +"\n\n";
+					+"JOIN_ID: "+s2Val+"\n";
+			
+					//+"MESSAGE: "+ s3Val +"\n\n";
+			String strmsg2 = "CHAT: "+s1Val +"\n"
+					+"CLIENT_NAME: "+s3Val +"\n"
+					+"MESSAGE: "+ s3Val;
+			strmsg+=strmsg2;
+			int key=-1;
 			//Iterate over all output streams, then check if they belong to this particular chat group and if true send the message
+			try{
+			
 			for (Entry<Integer, PrintStream> entry : Storage.writers.entrySet()) {
+				key=-1;
 				//System.out.println(pair.getKey() + " = " + pair.getValue());
-				if(String.valueOf(Storage.clients.get(entry.getKey()))==s1Val) {	//Condition when iterator is pointing to a client which is in the same chat room
+				//Condition when iterator is pointing to a client which is in the same chat room
+				if(String.valueOf(Storage.clients.get(entry.getKey())).equalsIgnoreCase((String.valueOf(s1Val)))) {	
 					os2 = entry.getValue();
-					os2.println(strmsg);
+					key = entry.getKey();
+					
+					
 					if(os2==os) {
+						os.println(strmsg);
+						System.out.println("Output "+os+" LEAVE_CHATROOM: \n" +  strmsg);
 						//Remove that clients OS
 						Storage.writers.remove(entry.getKey());
 						//Remove that client from chatroom list
 						Storage.clients.remove(entry.getKey());
+					}else{
+						os2.println(strmsg2);
+						System.out.println("Output "+os2+" LEAVE_CHATROOM: \n" +  strmsg2);
 					}
-
+				}
+			}
+			}catch(Exception se){
+				System.out.println("Exception in processing leave message" + se);
+				se.printStackTrace();
+			}finally{
+				if(key>-1){
+					Storage.writers.remove(key);
+					Storage.clients.remove(key);
 				}
 			}
 			System.out.println("******End: In processLeaveMessage******");
@@ -212,7 +248,7 @@ public class HelperFunctions {
 
 		String msg = "ERROR_CODE: 1\nERROR_DESCRIPTION: Invalid Input\n";
 		os.print(msg);
-		System.out.println("Error MessageSent: \n"+ msg);
+		System.out.println("Output ERROR:\n " +  msg);
 	}
 
 }

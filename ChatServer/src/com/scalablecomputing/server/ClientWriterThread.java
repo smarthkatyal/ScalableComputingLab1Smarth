@@ -30,7 +30,7 @@ public class ClientWriterThread extends Thread {
 			//Close the output stream, close the input stream, close the socket
 			//os.close();
 			//clientSocket.close();
-			System.out.println("****End "+Thread.currentThread().getId()+" WriterThread: In leave chatroom if block****");
+			//System.out.println("****End "+Thread.currentThread().getId()+" WriterThread: In leave chatroom if block****");
 			return;
 		}else if(s[0].startsWith("CHAT: ")) {
 			System.out.println("****Start  "+Thread.currentThread().getId()+" WriterThread: In chat if block****");

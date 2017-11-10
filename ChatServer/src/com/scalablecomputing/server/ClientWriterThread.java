@@ -36,8 +36,6 @@ public class ClientWriterThread extends Thread {
 			System.out.println("****Start  "+Thread.currentThread().getId()+" WriterThread: In chat if block****");
 			hf.processChatMessage(s[0],s[1],s[2],s[3],os);
 			System.out.println("****End "+Thread.currentThread().getId()+"  WriterThread: In chat if block****");
-			os.close();
-			return;
 		}else if(s[0].startsWith("HELO ")) {
 			System.out.println("****Start  "+Thread.currentThread().getId()+" WriterThread: In hello if block****");
 			hf.processHeloMessage(s[0],os);

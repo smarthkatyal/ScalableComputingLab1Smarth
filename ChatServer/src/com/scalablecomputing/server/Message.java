@@ -13,7 +13,7 @@ public class Message {
 	String serverIp;
 	String roomRef;
 	String joinId;
-	
+
 	public String getJOIN_CHATROOM() {
 		return JOIN_CHATROOM;
 	}
@@ -74,15 +74,15 @@ public class Message {
 	public void setJoinId(String joinId) {
 		this.joinId = joinId;
 	}
-	
+
 	public String joinReplyToString(){
-	     return "JOINED_CHATROOM: "+joinedChatroom+"\n"
-	    		 +"SERVER_IP: "+serverIp+"\n"
-	    		 +"PORT: "+PORT+"\n"
-	    		 +"ROOM_REF: "+roomRef+"\n"
-	    		 +"JOIN_ID: "+joinId+"\n";
-	    		 
-	   }
-	
-	
+		return "JOINED_CHATROOM: "+joinedChatroom+"\n"
+				+"SERVER_IP: "+serverIp+"\n"
+				+"PORT: "+PORT+"\n"
+				+"ROOM_REF: "+roomRef+"\n"
+				+"JOIN_ID: "+joinId+"\n";
+
+	}
+
+
 }

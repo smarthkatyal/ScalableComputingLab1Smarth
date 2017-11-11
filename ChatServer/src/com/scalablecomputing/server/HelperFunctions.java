@@ -178,7 +178,7 @@ public class HelperFunctions {
 		System.out.println("******Start "+Thread.currentThread().getId()+" : In processHeloMessage******");
 		String strmsg=null;
 		//TODO: Change IP and port
-		strmsg = helo + "\nIP: 134.226.50.91\nPort: 8089\nStudentID: 17306092";
+		strmsg = helo + "\nIP: 134.226.50.56\nPort: 8089\nStudentID: 17306092";
 		os.print(strmsg);
 		System.out.println("Output "+os+" HELO: \n" +  strmsg);
 		System.out.println("******End  "+Thread.currentThread().getId()+" : In processHeloMessage******");

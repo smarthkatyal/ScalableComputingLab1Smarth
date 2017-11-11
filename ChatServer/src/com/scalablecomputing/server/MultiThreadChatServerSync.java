@@ -29,12 +29,11 @@ public class MultiThreadChatServerSync {
 
 		HelperFunctions.loadProperties();
 		Storage.charRoomsIndex=0;
-		String ip = "134.226.50.148";
 		// The default port number.
 		int portNumber = 8089;
 		if (args.length < 1) {
 			System.out.println("Usage: java MultiThreadChatServerSync <portNumber>\n"
-					+ "Now using port number=" + portNumber +"\nAnd IP= "+ ip);
+					+ "Now using port number=" + portNumber +"\nAnd IP= ");
 		} else {
 			portNumber = Integer.valueOf(args[0]).intValue();
 		}
@@ -114,16 +113,16 @@ class clientThread extends Thread {
 				System.out.println("Waiting for input");
 				s[0]=is.readLine();
 				System.out.println("FirstLine: "+s[0]+"\n");
-				if(s[0].startsWith("JOIN_CHATROOM: ")) {
+				if(null != s[0] && s[0].startsWith("JOIN_CHATROOM: ")) {
 					s[1] = is.readLine();
 					s[2] = is.readLine();
 					s[3] = is.readLine();
 					System.out.println("Input JOIN_CHATROOM Message:\n"+s[0]+s[1]+s[2]+s[3]);
-				}else if(s[0].startsWith("LEAVE_CHATROOM: ")) {
+				}else if(null != s[0] && s[0].startsWith("LEAVE_CHATROOM: ")) {
 					s[1] = is.readLine();
 					s[2] = is.readLine();
 					System.out.println("Input LEAVE_CHATROOM Message:\n"+s[0]+s[1]+s[2]);
-				}else if(s[0].startsWith("CHAT: ")) {
+				}else if(null != s[0] && s[0].startsWith("CHAT: ")) {
 					s[1] = is.readLine();
 					s[2] = is.readLine();
 					//s[3] = is.readLine();
@@ -136,29 +135,24 @@ class clientThread extends Thread {
 						i++;
 					}
 					System.out.println("Input CHAT Message:\n"+s[0]+s[1]+s[2]+s[3]+s[4]);
-				}else if(s[0].startsWith("KILL_SERVICE")) {
+				}else if(null != s[0] && s[0].startsWith("KILL_SERVICE")) {
 					System.out.println("Input KILL_SERVICE Message:\n"+s[0]);
-					is.close();
-					os.close();
 					clientSocket.close();
 					System.exit(0);
-				}else if(s[0].startsWith("HELO ")) {
+				}else if(null != s[0] && s[0].startsWith("HELO ")) {
 					System.out.println("Input HELO Message:\n"+s[0]);
-				}else if(s[0].startsWith("DISCONNECT: ")){
+				}else if(null != s[0] && s[0].startsWith("DISCONNECT: ")){
 					s[1] = is.readLine();
 					s[2] = is.readLine();
 					HelperFunctions hf = new HelperFunctions();
 					hf .processDisconnectMessage(s[0],s[1],s[2],os);
-					os.close();
-					is.close();
 					clientSocket.close();
 					return;
+				}else if(null == s[0]){
 				}else {
 					System.out.println("Input ERROR Message:\n"+s[0]);
-					//PrintStream os = new PrintStream(clientSocket.getOutputStream());
 					HelperFunctions hf = new HelperFunctions();
 					hf .processErrorMessage(s[0],os);
-
 				}
 				new ClientWriterThread(os,s).start();
 			}
@@ -169,8 +163,6 @@ class clientThread extends Thread {
 		}finally{
 			try {
 				System.out.println("In finally");
-				is.close();
-				os.close();
 				clientSocket.close();
 			} catch (IOException e) {
 				System.out.println("IO Exception in main Thread Finally block::"+e +"::");

@@ -1,9 +1,6 @@
 package com.scalablecomputing.server;
 
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.io.PrintStream;
-import java.net.Socket;
 
 public class ClientWriterThread extends Thread {
 	private PrintStream os = null;
@@ -16,7 +13,7 @@ public class ClientWriterThread extends Thread {
 	}
 
 	public void run() {
-		System.out.println("ClientWriter "+Thread.currentThread().getId()+ " : Created a thread");
+		System.out.println("ClientWriter "+Thread.currentThread().getId()+ " : Created a thread for input "+s[0]);
 		HelperFunctions hf = new HelperFunctions();
 
 		if(s[0].startsWith("JOIN_CHATROOM: ")) {

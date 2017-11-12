@@ -1,13 +1,9 @@
 package com.scalablecomputing.server;
 
-import java.awt.List;
 import java.io.PrintStream;
-import java.net.SocketException;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import com.scalablecomputing.server.Message;
 
 public class HelperFunctions {
 
@@ -133,7 +129,6 @@ public class HelperFunctions {
 			String[] parts = s1.split(": ");
 			String s1Val = parts[1];
 			parts = s2.split(": ");
-			String s2Val = parts[1];
 			parts = s3.split(": ");
 			String s3Val = parts[1];
 			parts = s4.split(": ");
@@ -178,7 +173,7 @@ public class HelperFunctions {
 		System.out.println("******Start "+Thread.currentThread().getId()+" : In processHeloMessage******");
 		String strmsg=null;
 		//TODO: Change IP and port
-		strmsg = helo + "\nIP: 134.226.50.56\nPort: 8089\nStudentID: 17306092";
+		strmsg = helo + "\nIP: 134.226.50.49\nPort: 8089\nStudentID: 17306092";
 		os.print(strmsg);
 		System.out.println("Output "+os+" HELO: \n" +  strmsg);
 		System.out.println("******End  "+Thread.currentThread().getId()+" : In processHeloMessage******");
@@ -282,9 +277,7 @@ public class HelperFunctions {
 				&& s2.startsWith("PORT") 
 				&& s3.startsWith("CLIENT_NAME")) {
 			String[] parts = s1.split(": ");
-			String s1Val = parts[1];
 			parts = s2.split(": ");
-			String s2Val = parts[1];
 			parts = s3.split(": ");
 			String s3Val = parts[1];
 

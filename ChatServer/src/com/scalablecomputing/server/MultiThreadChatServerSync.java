@@ -1,15 +1,10 @@
 package com.scalablecomputing.server;
 import java.io.BufferedReader;
-import java.io.DataInputStream;
-
-import com.scalablecomputing.server.Message;
-import java.io.PrintStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.Socket;
-import java.nio.CharBuffer;
-import java.util.Arrays;
+import java.io.PrintStream;
 import java.net.ServerSocket;
+import java.net.Socket;
 
 /*
  * A chat server that delivers public and private messages.
@@ -17,18 +12,20 @@ import java.net.ServerSocket;
 public class MultiThreadChatServerSync {
 
 	// The server socket.
-	private static ServerSocket serverSocket = null;
+	public static ServerSocket serverSocket = null;
 	// The client socket.
-	private static Socket clientSocket = null;
+	public static Socket clientSocket = null;
 
 	// This chat server can accept up to maxClientsCount clients' connections.
-	private static final int maxClientsCount = 100;
-	private static final clientThread[] threads = new clientThread[maxClientsCount];
+	public static final int maxClientsCount = 10;
+	public static final clientThread[] threads = new clientThread[maxClientsCount];
+	public static Boolean cont = true;
 
 	public static void main(String args[]) {
 
 		HelperFunctions.loadProperties();
 		Storage.charRoomsIndex=0;
+
 		// The default port number.
 		int portNumber = 8089;
 		if (args.length < 1) {
@@ -58,20 +55,28 @@ public class MultiThreadChatServerSync {
 		while (true) {
 			try {
 				System.out.println("Waiting for connection");
-				clientSocket = serverSocket.accept();
-				System.out.println("Got a connetion creating thread");
-				int i = 0;
-				for (i = 0; i < maxClientsCount; i++) {
-					if (threads[i] == null) {
-						(threads[i] = new clientThread(clientSocket, threads)).start();
-						break;
+				if(cont)
+				{
+					clientSocket = serverSocket.accept();
+					System.out.println("Got a connetion creating thread");
+					int i = 0;
+					for (i = 0; i < maxClientsCount; i++) {
+						if (threads[i] == null) {
+							(threads[i] = new clientThread(clientSocket, threads)).start();
+							break;
+						}
 					}
-				}
-				if (i == maxClientsCount) {
-					PrintStream os = new PrintStream(clientSocket.getOutputStream());
-					os.println("Server too busy. Try later.");
-					os.close();
+					if (i == maxClientsCount) {
+						PrintStream os = new PrintStream(clientSocket.getOutputStream());
+						os.println("Server too busy. Try later.");
+						os.close();
+						clientSocket.close();
+					}
+				}else{
+					System.out.println("Stopping");
+					serverSocket.close();
 					clientSocket.close();
+					System.exit(0);
 				}
 			} catch (IOException e) {
 				System.out.println(e);
@@ -94,13 +99,18 @@ class clientThread extends Thread {
 	private Socket clientSocket = null;
 	BufferedReader is;
 	PrintStream os;
+	private final clientThread[] threads;
+	private int maxClientsCount;
+	
 	public clientThread(Socket clientSocket, clientThread[] threads) {
 		this.clientSocket = clientSocket;
-
+		this.threads = threads;
+		 maxClientsCount = threads.length;
 	}
 
 	public void run() {
 		System.out.println("Main Thread "+Thread.currentThread().getId()+" : Created a thread");
+		clientThread[] threads = this.threads;
 		String[] s = new String[100] ;
 		try {
 			is = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -136,8 +146,30 @@ class clientThread extends Thread {
 					}
 					System.out.println("Input CHAT Message:\n"+s[0]+s[1]+s[2]+s[3]+s[4]);
 				}else if(null != s[0] && s[0].startsWith("KILL_SERVICE")) {
+					System.exit(0);
 					System.out.println("Input KILL_SERVICE Message:\n"+s[0]);
+					MultiThreadChatServerSync.cont=false;
+					MultiThreadChatServerSync.serverSocket.close();
+					MultiThreadChatServerSync.clientSocket.close();
+					is.close();
+					os.close();
 					clientSocket.close();
+					
+					 /*
+				       * Clean up. Set the current thread variable to null so that a new client
+				       * could be accepted by the server.
+				       */
+				      synchronized (this) {
+				        for (int i = 0; i < maxClientsCount; i++) {
+				          if (threads[i] != null && threads[i] !=this) {
+				        	  threads[i].is.close();
+				        	  threads[i].os.close();
+				        	  threads[i].clientSocket.close();
+				            threads[i] = null;
+				          }
+				        }
+				      }
+				      
 					System.exit(0);
 				}else if(null != s[0] && s[0].startsWith("HELO ")) {
 					System.out.println("Input HELO Message:\n"+s[0]);
@@ -149,6 +181,31 @@ class clientThread extends Thread {
 					clientSocket.close();
 					return;
 				}else if(null == s[0]){
+					System.out.println("Input NULL Message:\n"+s[0]);
+					MultiThreadChatServerSync.cont=false;
+					MultiThreadChatServerSync.serverSocket.close();
+					MultiThreadChatServerSync.clientSocket.close();
+					is.close();
+					os.close();
+					clientSocket.close();
+					
+					 /*
+				       * Clean up. Set the current thread variable to null so that a new client
+				       * could be accepted by the server.
+				       */
+				      synchronized (this) {
+				        for (int i = 0; i < maxClientsCount; i++) {
+				          if (threads[i] != null && threads[i] !=this) {
+				        	  threads[i].is.close();
+				        	  threads[i].os.close();
+				        	  threads[i].clientSocket.close();
+				        	  threads[i] = null;
+				          }
+				        }
+				      }
+				      
+					System.exit(0);
+					return;
 				}else {
 					System.out.println("Input ERROR Message:\n"+s[0]);
 					HelperFunctions hf = new HelperFunctions();
@@ -171,7 +228,7 @@ class clientThread extends Thread {
 				System.out.println("NullPointerException in main Thread Finally block::"+npe +"::");
 				npe.printStackTrace();
 			}
-			
+
 
 		}
 	}

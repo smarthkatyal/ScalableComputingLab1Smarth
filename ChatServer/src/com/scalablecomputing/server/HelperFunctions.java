@@ -110,7 +110,7 @@ public class HelperFunctions {
 		return reply;
 
 	}
-	public static void loadProperties() {
+	public static void loadProperties(String ip,int portNumber) {
 		/*	try {
 			prop.load(new FileInputStream("keywords.properties"));
 		} catch (IOException e) {
@@ -118,8 +118,8 @@ public class HelperFunctions {
 		}
 		keywords.serverIp = prop.getProperty("serverIp");
 		keywords.serverPort = prop.getProperty("serverPort");*/
-		keywords.serverIp = "134.226.50.181";
-		keywords.serverPort = "8089";
+		keywords.serverIp = ip;
+		keywords.serverPort = String.valueOf(portNumber);
 	}
 
 	public boolean processChatMessage(String s1, String s2, String s3, String s4, PrintStream os) {
@@ -173,7 +173,7 @@ public class HelperFunctions {
 		System.out.println("******Start "+Thread.currentThread().getId()+" : In processHeloMessage******");
 		String strmsg=null;
 		//TODO: Change IP and port
-		strmsg = helo + "\nIP: 134.226.50.181\nPort: 8089\nStudentID: 17306092";
+		strmsg = helo + "\nIP: "+keywords.serverIp+"\nPort: "+keywords.serverPort+"\nStudentID: 17306092";
 		os.print(strmsg);
 		System.out.println("Output "+os+" HELO: \n" +  strmsg);
 		System.out.println("******End  "+Thread.currentThread().getId()+" : In processHeloMessage******");

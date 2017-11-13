@@ -146,7 +146,6 @@ class clientThread extends Thread {
 					}
 					System.out.println("Input CHAT Message:\n"+s[0]+s[1]+s[2]+s[3]+s[4]);
 				}else if(null != s[0] && s[0].startsWith("KILL_SERVICE")) {
-					System.exit(0);
 					System.out.println("Input KILL_SERVICE Message:\n"+s[0]);
 					MultiThreadChatServerSync.cont=false;
 					MultiThreadChatServerSync.serverSocket.close();

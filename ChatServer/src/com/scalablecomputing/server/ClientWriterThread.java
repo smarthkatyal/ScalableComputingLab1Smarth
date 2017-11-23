@@ -1,7 +1,12 @@
 package com.scalablecomputing.server;
 
 import java.io.PrintStream;
-
+/*
+ * The class clientWriterThread.
+ * This will use the input and the output streams for a particular client.
+ * This will process the response and send it back to the client and quit.
+ * This thread can be treated as a writer
+ */
 public class ClientWriterThread extends Thread {
 	private PrintStream os = null;
 	private String[] s;

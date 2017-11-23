@@ -25,8 +25,7 @@ public class MultiThreadChatServerSync {
 
 	//Args will take port number as the first argument and the ip address as the second argument
 	public static void main(String args[]) {
-
-		
+		// Initialize the value to 0 for index of last created chatroom
 		Storage.charRoomsIndex=0;
 		// The default port number and IP
 		int portNumber = 8089;
@@ -35,12 +34,15 @@ public class MultiThreadChatServerSync {
 		
 		if (args.length < 2) {
 			System.out.println("ERROR: If You can see this error, there is a problem in the startup.sh script."
+					+ "\nYou should specify the IP and PORT number in the script"
 					+ " But the server is still running on localhost and port 8089 "
 					+ "\nUsage: java MultiThreadChatServerSync <portNumber> <I.P>\n");
 		} else {
+			//If args are correct, use the ip and port provided in the arguments
 			portNumber = Integer.valueOf(args[0]).intValue();
 			ip = args[1];
 		}
+		//Error handling
 		if(ip.isEmpty()){
 			System.out.println("IP address is empty");
 			return;
@@ -52,8 +54,8 @@ public class MultiThreadChatServerSync {
 		HelperFunctions.loadProperties(ip,portNumber);
 
 		/*
-		 * Open a server socket on the portNumber. Note that we can
-		 * not choose a port less than 1023 if we are not privileged users (root).
+		 * Open a server socket on the portNumber 
+		 * Do not choose port less than 1023 if not privileged user (root).
 		 */
 		try {
 			serverSocket = new ServerSocket(portNumber);
@@ -80,6 +82,8 @@ public class MultiThreadChatServerSync {
 					s = is.readLine();
 					System.out.println("Got a connetion creating thread");
 					int i = 0;
+					/*Cycle through the thread datastructure to see if there is an available thread,
+					 *if yes, assign clientsocket to it and delegate*/
 					for (i = 0; i < maxClientsCount; i++) {
 						if (threads[i] == null) {
 							(threads[i] = new clientThread(clientSocket, threads,s,is)).start();
@@ -103,13 +107,9 @@ public class MultiThreadChatServerSync {
 }
 
 /*
- * The chat client thread. This client thread opens the input and the output
- * streams for a particular client, ask the client's name, informs all the
- * clients connected to the server about the fact that a new client has joined
- * the chat room, and as long as it receive data, echos that data back to all
- * other clients. The thread broadcast the incoming messages to all clients and
- * routes the private message to the particular client. When a client leaves the
- * chat room this thread informs also all the clients about that and terminates.
+ * The class clientThread.
+ * This will open the input and the output
+ * streams for a particular client.
  * It reads all messages as per protocol and creates a new thread for the processing.
  * The response is also done by the other thread.
  * This thread can be treated as a reader
@@ -132,16 +132,14 @@ class clientThread extends Thread {
 	}
 
 	public void run() {
-		System.out.println("Main Thread "+Thread.currentThread().getId()+" : Created a thread");
 		flag=false;
 		try {
 			os = new PrintStream(clientSocket.getOutputStream());
 			while(true) {
-				System.out.println("Waiting for input");
 				if(flag){
 					s[0]=is.readLine();
 				}
-				System.out.println("FirstLine: "+s[0]+"\n");
+				System.out.println("FirstLine: "+s[0]);
 				if(null != s[0] && s[0].startsWith("JOIN_CHATROOM: ")) {
 					s[1] = is.readLine();
 					s[2] = is.readLine();
@@ -197,6 +195,7 @@ class clientThread extends Thread {
 					System.out.println("Setting it to null");
 					MultiThreadChatServerSync.serverSocket=null;
 					System.out.println("Done everything");
+					
 					System.exit(0);
 					break;
 				}else if(null != s[0] && s[0].startsWith("HELO ")) {
@@ -215,6 +214,7 @@ class clientThread extends Thread {
 					HelperFunctions hf = new HelperFunctions();
 					hf .processErrorMessage(s[0],os);
 				}
+				//After reading complete input message, delegate processing to writer thread
 				new ClientWriterThread(os,s).start();
 				flag=true;
 			}

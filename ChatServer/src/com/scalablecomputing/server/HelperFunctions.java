@@ -4,7 +4,11 @@ import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
-
+/*
+ * The class HelperFunctions.
+ * This has functions to process the message after reading is complete by the ClientThread(Reader)
+ * It will generate the response that is to be sent back to the client.
+ */
 public class HelperFunctions {
 
 	public String decode(String readLine) {
@@ -89,14 +93,14 @@ public class HelperFunctions {
 		}
 		else {
 			System.out.println("****ERROR "+Thread.currentThread().getId()+" :  Processing Join Message*****");
-			msg.setErrorCode("1");
-			msg.setErrorDescription("Input Message not valid");
+			String message = "ErrorCode: 1\nErrorDescription: Input Message not valid";
+			os.println(message);
 			return false;
 		}
 
 	}
 	public String makeReplyMessage(Message inPacket) {
-		System.out.println("******Start "+Thread.currentThread().getId()+" : In MakeReplyMessage******");
+		//System.out.println("******Start "+Thread.currentThread().getId()+" : In MakeReplyMessage******");
 
 
 		Message outPacket = new Message();
@@ -106,7 +110,7 @@ public class HelperFunctions {
 		outPacket.setRoomRef(Storage.chatRooms.get(inPacket.JOIN_CHATROOM).toString());
 		outPacket.setJoinId(String.valueOf(Thread.currentThread().getId()));		//Using ThreadID as join ID
 		String reply = outPacket.joinReplyToString();
-		System.out.println("******End "+Thread.currentThread().getId()+" : In MakeReplyMessage******");
+		//System.out.println("******End "+Thread.currentThread().getId()+" : In MakeReplyMessage******");
 		return reply;
 
 	}
@@ -136,8 +140,8 @@ public class HelperFunctions {
 
 			//check if chatroom exists
 			if(!Storage.chatRoomsInverse.containsKey(Integer.parseInt(s1Val))) { //Create new chatroom
-				msg.setErrorCode("1");
-				msg.setErrorDescription("Input Message not valid");
+				String message = "ErrorCode: 2\nErrorDescription: Chat Room Does not exist";
+				os.println(message);
 				System.out.println("****ERROR 1:  Processing Chat Message*****");
 				return false;
 			}
@@ -164,8 +168,8 @@ public class HelperFunctions {
 		}
 		else {
 			System.out.println("****ERROR 2:  Processing Chat Message*****");
-			msg.setErrorCode("1");
-			msg.setErrorDescription("Input Message not valid");
+			String message = "ErrorCode: 3\nErrorDescription: Error Processing Chat message";
+			os.println(message);
 			return false;
 		}
 	}
@@ -260,19 +264,20 @@ public class HelperFunctions {
 		}
 		else {
 			System.out.println("****ERROR 2:  Processing leave Message*****");
-			/*msg.setErrorCode("1");
-			msg.setErrorDescription("Input Message not valid");*/
+			String message = "ErrorCode: 4\nErrorDescription: Error Processing Leave message";
+			os.println(message);
 			return false;
 		}
 
 	}
 	public void processErrorMessage(String string, PrintStream os) {
 
-		String msg = "ERROR_CODE: 1\nERROR_DESCRIPTION: Invalid Input\n";
+		String msg = "ERROR_CODE: 5\nERROR_DESCRIPTION: Invalid Input\n";
 		os.print(msg);
 		System.out.println("Output ERROR:\n " +  msg);
 	}
 	public void processDisconnectMessage(String s1,String s2, String s3, PrintStream os) {
+		System.out.println("****Start:  processDisconnectMessage*****");
 		if(s1.startsWith("DISCONNECT") 
 				&& s2.startsWith("PORT") 
 				&& s3.startsWith("CLIENT_NAME")) {
@@ -323,6 +328,7 @@ public class HelperFunctions {
 				Storage.clients.remove(key);
 			}
 		}
+		System.out.println("****Start:  processDisconnectMessage*****");
 	}
 
 }

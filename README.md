@@ -7,9 +7,9 @@ This repository contains the server code for the chat server assignment.  This r
 
 
 >#### <i class="icon-upload"></i> Submission details:
->Name: Smarth Katyal
->TCD Student ID: 17306092
->Email: katyals@tcd.ie
+Name: Smarth Katyal
+<br>TCD Student ID: 17306092
+<br>Email: katyals@tcd.ie
 
 Dependencies
 -------------
@@ -29,12 +29,12 @@ Configuration
 Compiling
 -------------
 >-  navigate to **ChatServer/src/conf/** and run the below command:
-	>- **sh compile.sh**
+	 <br>**sh compile.sh**
 
 Running
 -------------
 >- navigate to **ChatServer/src/conf/** and run the below command:
-	>- **sh start.sh**
+	 <br>**sh start.sh**
 
 
 Error Codes

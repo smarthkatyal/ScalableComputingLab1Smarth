@@ -29,12 +29,14 @@ Configuration
 Compiling
 -------------
 >-  navigate to **ChatServer/src/conf/** and run the below command:
-	>>- 		**sh compile.sh** 
+	```		**sh compile.sh** 
+	```
 
 Running
 -------------
-navigate to **ChatServer/src/conf/** and run the below command:
-	>>- 		**sh start.sh**
+>- navigate to **ChatServer/src/conf/** and run the below command:
+	``` 		**sh start.sh**
+	```
 
 
 Error Codes

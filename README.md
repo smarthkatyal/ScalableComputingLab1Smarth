@@ -22,6 +22,8 @@ Configuration
 -------------
 
 >-  After unpacking all files, navigate to **ChatServer/src/conf/** and run **dos2unix** command on **compile.sh** & **start.sh** files.
+<br>**dos2unix compile.sh**
+<br>**dos2unix start.sh**
 >- Open the file **start.sh** using any editor like vim and specify the IP address of the server. You can obtain the IP Address by using the command **ifconfig** in the command line. Use this IP address in the **start.sh** script, in line *THIS_IP=< IP_ADDR_OF_SERVER>*.
 >- Save and close the file.
 

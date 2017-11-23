@@ -21,7 +21,7 @@ Dependencies
 Configuration
 -------------
 
->-  After unpacking all files, navigate to **ChatServer/src/conf/** and run **dos2unix** command on **compile.sh ** & **start.sh** files.
+>-  After unpacking all files, navigate to **ChatServer/src/conf/** and run **dos2unix** command on **compile.sh** & **start.sh** files.
 >- Open the file **start.sh** using any editor like vim and specify the IP address of the server. You can obtain the IP Address by using the command **ifconfig** in the command line. Use this IP address in the **start.sh** script, in line *THIS_IP=< IP_ADDR_OF_SERVER>*.
 >- Save and close the file.
 
@@ -29,16 +29,12 @@ Configuration
 Compiling
 -------------
 >-  navigate to **ChatServer/src/conf/** and run the below command:
-	```
-	sh compile.sh
-	```
+	**sh compile.sh**
 
 Running
 -------------
 >- navigate to **ChatServer/src/conf/** and run the below command:
-	```
-	sh start.sh
-	```
+	**sh start.sh**
 
 
 Error Codes
